@@ -122,3 +122,16 @@ document.addEventListener('touchstart', () => {
 });
 
 // 在小鸟降落后重置 isJumping 变量
+
+document.addEventListener('click', () => {
+  gamePlaying = true;
+  flight = jump;
+  playJumpSound();
+});
+
+window.onclick = () => flight = jump;
+
+function playJumpSound() {
+  const jumpSound = document.getElementById('jump-sound');
+  jumpSound.play();
+}
