@@ -1,6 +1,7 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
+// Ensure this image path is accessible after publishing!
 img.src = "https://raw.githubusercontent.com/tan0327/tesing123/main/JavaScript%20Fly%20Ghost.png";
 
 // general settings
@@ -13,8 +14,8 @@ const cTenth = canvas.width / 10;
 
 // Time tracking variables for Fixed Time Step
 let lastTime = 0; 
-const gameSpeed = 60; 
-const timeStep = 1000 / gameSpeed; // approx 16.67ms
+const gameSpeed = 60; // Target 60 updates per second
+const timeStep = 1000 / gameSpeed;
 let accumulator = 0; 
 
 let index = 0,
@@ -93,8 +94,6 @@ const render = (timestamp) => {
 
   // 3. Drawing/Rendering (only draw if image loaded)
   if (img.complete) {
-      // Clear canvas (implicit when drawing over entire area)
-      
       // background first part
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
       // background second part
@@ -142,28 +141,31 @@ const render = (timestamp) => {
 // launch setup
 setup();
 
-// Start the render loop immediately, do not wait for img.onload
+// Start the render loop immediately
 window.requestAnimationFrame(render);
 
 
-// Input Handlers
+// ----------------------------------------------------------------
+// Input Handlers (Fixed to prevent double jump)
+// ----------------------------------------------------------------
+
+// Desktop/PC Input (Handles mouse clicks)
 document.addEventListener('click', () => {
   gamePlaying = true;
   flight = jump;
   playJumpSound();
 });
 
-window.onclick = () => flight = jump;
-
-document.addEventListener('touchstart', () => {
-  // Use a simple touch trigger since isJumping logic is complex to maintain
+// Mobile Input (Handles screen taps)
+document.addEventListener('touchstart', (e) => {
+  e.preventDefault(); // Prevent browser default actions (like scrolling/zooming)
   gamePlaying = true;
   flight = jump;
   playJumpSound();
-});
+}, { passive: false }); // { passive: false } needed for e.preventDefault()
 
 function playJumpSound() {
   const jumpSound = document.getElementById('jump-sound');
-  jumpSound.currentTime = 0; 
+  jumpSound.currentTime = 0; // Reset sound position
   jumpSound.play();
 }
