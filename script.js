@@ -14,7 +14,7 @@ const cTenth = canvas.width / 10;
 // Time tracking variables for Fixed Time Step
 let lastTime = 0; // To store the timestamp of the previous frame
 const gameSpeed = 60; // Target update rate (e.g., 60 updates per second)
-const timeStep = 1000 / gameSpeed; // Milliseconds per update
+const timeStep = 1000 / gameSpeed; // Milliseconds per update (approx 16.67ms)
 let accumulator = 0; // To track time that needs to be processed
 
 let index = 0,
@@ -31,6 +31,10 @@ const pipeGap = 270;
 const pipeLoc = () => Math.random() * (canvas.height - (pipeGap + pipeWidth)) + pipeWidth;
 
 const setup = () => {
+  // FIX: Reset time tracking variables on game restart to prevent stalls
+  lastTime = 0; 
+  accumulator = 0;
+  
   currentScore = 0;
   flight = jump;
   flyHeight = (canvas.height / 2) - (size[1] / 2);
@@ -47,10 +51,12 @@ const render = (timestamp) => {
   accumulator += deltaTime;
 
   // 2. Fixed Time Step Loop (Game Logic Updates)
+  // This loop ensures game logic runs a fixed number of times per second (e.g., 60),
+  // making the game speed consistent across all devices.
   while (accumulator >= timeStep) {
     // --- START OF GAME LOGIC UPDATE ---
 
-    index++;
+    index++; // Used for animation frames and background scroll speed
 
     // pipe display (Movement and Collision)
     if (gamePlaying) {
@@ -78,8 +84,6 @@ const render = (timestamp) => {
     if (gamePlaying) {
       flight += gravity;
       flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
-    } else {
-      flyHeight = (canvas.height / 2) - (size[1] / 2);
     }
     
     // --- END OF GAME LOGIC UPDATE ---
@@ -107,6 +111,7 @@ const render = (timestamp) => {
   if (gamePlaying) {
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, cTenth, flyHeight, ...size);
   } else {
+    // Draw in center when game is not playing
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
 
     // text accueil
@@ -129,43 +134,31 @@ setup();
 // 在图片加载完成后调用 render 函数
 img.onload = render;
 
-// start game
+// start game (handles mouse click)
 document.addEventListener('click', () => {
   gamePlaying = true;
   flight = jump;
   playJumpSound();
 });
 
+// window.onclick is generally redundant if click listener is present, 
+// but keeping it if it targets a specific area:
 window.onclick = () => flight = jump;
 
-let isJumping = false;
+let isJumping = false; // Note: This variable is currently unused in the updated logic
 
+// handles touch input
 document.addEventListener('touchstart', () => {
   if (!isJumping) {
     gamePlaying = true;
     flight = jump;
-    isJumping = true;
-    playJumpSound(); // Added sound for touch
+    // isJumping = true; // Kept commented as its reset logic is complex and not fully implemented
+    playJumpSound();
   }
 });
 
-// Since isJumping logic wasn't fully implemented to reset, 
-// I'll rely on the existing click/window.onclick and touchstart to trigger the jump
-// and remove the redundant click listener later in the file.
-
-// Redundant click listener was removed to simplify the logic:
-/*
-document.addEventListener('click', () => {
-  gamePlaying = true;
-  flight = jump;
-  playJumpSound();
-});
-*/
-
-window.onclick = () => flight = jump; // Keep this for PC/Desktop users
-
 function playJumpSound() {
   const jumpSound = document.getElementById('jump-sound');
-  jumpSound.currentTime = 0; // Reset sound position
+  jumpSound.currentTime = 0; // Reset sound position to allow rapid jumps
   jumpSound.play();
 }
