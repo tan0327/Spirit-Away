@@ -1,7 +1,6 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
-// Potential Issue: Check this URL carefully! Is it accessible after publishing?
 img.src = "https://raw.githubusercontent.com/tan0327/tesing123/main/JavaScript%20Fly%20Ghost.png";
 
 // general settings
@@ -15,7 +14,7 @@ const cTenth = canvas.width / 10;
 // Time tracking variables for Fixed Time Step
 let lastTime = 0; 
 const gameSpeed = 60; 
-const timeStep = 1000 / gameSpeed;
+const timeStep = 1000 / gameSpeed; // approx 16.67ms
 let accumulator = 0; 
 
 let index = 0,
@@ -32,7 +31,7 @@ const pipeGap = 270;
 const pipeLoc = () => Math.random() * (canvas.height - (pipeGap + pipeWidth)) + pipeWidth;
 
 const setup = () => {
-  // Reset time tracking variables on game restart
+  // FIX: Reset time tracking variables on game restart
   lastTime = 0; 
   accumulator = 0;
   
@@ -45,9 +44,9 @@ const setup = () => {
 
 // Define render function with Fixed Time Step logic
 const render = (timestamp) => { 
-  // 1. Calculate Delta Time (timestamp is undefined on first manual call)
+  // 1. Calculate Delta Time
   if (lastTime === 0 || timestamp === undefined) {
-      lastTime = performance.now(); // Use performance.now() for reliable start
+      lastTime = performance.now(); 
       timestamp = lastTime;
   }
   const deltaTime = timestamp - lastTime;
@@ -92,9 +91,10 @@ const render = (timestamp) => {
     accumulator -= timeStep;
   }
 
-  // 3. Drawing/Rendering (only draw if image loaded to avoid errors)
-  // If the image hasn't loaded, this area will be skipped.
+  // 3. Drawing/Rendering (only draw if image loaded)
   if (img.complete) {
+      // Clear canvas (implicit when drawing over entire area)
+      
       // background first part
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
       // background second part
@@ -142,12 +142,11 @@ const render = (timestamp) => {
 // launch setup
 setup();
 
-// IMPORTANT CHANGE: Start the render loop immediately, 
-// DO NOT wait for the image to load via img.onload
+// Start the render loop immediately, do not wait for img.onload
 window.requestAnimationFrame(render);
 
 
-// start game (handles mouse click)
+// Input Handlers
 document.addEventListener('click', () => {
   gamePlaying = true;
   flight = jump;
@@ -156,16 +155,11 @@ document.addEventListener('click', () => {
 
 window.onclick = () => flight = jump;
 
-let isJumping = false; 
-
-// handles touch input
 document.addEventListener('touchstart', () => {
-  if (!isJumping) {
-    gamePlaying = true;
-    flight = jump;
-    // isJumping = true; 
-    playJumpSound();
-  }
+  // Use a simple touch trigger since isJumping logic is complex to maintain
+  gamePlaying = true;
+  flight = jump;
+  playJumpSound();
 });
 
 function playJumpSound() {
