@@ -5,22 +5,53 @@ body {
   margin: 0;
   text-align: center;
   font-size: 20px; 
-  font-family: 'ZCOOL KuaiLe', cursive; /* 使用 'ZCOOL KuaiLe' 字体 */
+  font-family: 'ZCOOL KuaiLe', cursive;
   user-select: none;
+  
+  /* Full viewport size for centering */
+  height: 100vh;
+  width: 100vw;
+  background-color: #333; 
+  
+  /* Flexbox for centering the wrapper */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; 
 }
+
+/* Game Wrapper: Scales the entire game content (Header + Canvas) */
+#game-wrapper {
+    /* CRITICAL: Scaling logic based on viewport size and 431/768 aspect ratio */
+    width: min(100vh * (431 / 768), 100vw);
+    height: min(100vw * (768 / 431), 100vh);
+    
+    display: flex;
+    flex-direction: column;
+}
+
 header {
-  margin: 0 auto;
-  width: 431px;
+  width: 100%; 
+  margin: 0;
 }
+
 h1 {
   background: url("https://raw.githubusercontent.com/tan0327/tesing123/main/JavaScript%20Fly%20Ghost.png") 0% 340px;
   padding: 1.2rem 0;
   margin: 0;
-  color: white; /* 添加这一行来设置字体颜色为白色 */
+  color: white; 
 }
+
 .score-container {
   display: flex;
   justify-content: space-between;
   padding: 8px 6px;
   background: #5EE270;
 } 
+
+#canvas {
+    /* Canvas fills the scaled wrapper space */
+    display: block; 
+    width: 100%; 
+    height: 100%;
+}
