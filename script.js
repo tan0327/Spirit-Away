@@ -11,6 +11,12 @@ const size = [51, 36];
 const jump = -11.5;
 const cTenth = canvas.width / 10;
 
+// Time tracking variables for Fixed Time Step
+let lastTime = 0; // To store the timestamp of the previous frame
+const gameSpeed = 60; // Target update rate (e.g., 60 updates per second)
+const timeStep = 1000 / gameSpeed; // Milliseconds per update
+let accumulator = 0; // To track time that needs to be processed
+
 let index = 0,
   bestScore = 0,
   flight,
@@ -32,49 +38,76 @@ const setup = () => {
   pipes = Array(3).fill().map((a, i) => [canvas.width + (i * (pipeGap + pipeWidth)), pipeLoc()]);
 };
 
-// 定义 render 函数
-const render = () => {
-  index++;
+// Define render function with Fixed Time Step logic
+const render = (timestamp) => { 
+  // 1. Calculate Delta Time
+  if (lastTime === 0) lastTime = timestamp;
+  const deltaTime = timestamp - lastTime;
+  lastTime = timestamp;
+  accumulator += deltaTime;
+
+  // 2. Fixed Time Step Loop (Game Logic Updates)
+  while (accumulator >= timeStep) {
+    // --- START OF GAME LOGIC UPDATE ---
+
+    index++;
+
+    // pipe display (Movement and Collision)
+    if (gamePlaying) {
+      pipes.map(pipe => {
+        // Horizontal Movement
+        pipe[0] -= speed;
+
+        // give 1 point & create new pipe
+        if (pipe[0] <= -pipeWidth) {
+          currentScore++;
+          bestScore = Math.max(bestScore, currentScore);
+
+          pipes = [...pipes.slice(1), [pipes[pipes.length - 1][0] + pipeGap + pipeWidth, pipeLoc()]];
+        }
+
+        // if hit the pipe, end (Collision Check)
+        if ([pipe[0] <= cTenth + size[0], pipe[0] + pipeWidth >= cTenth, pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1]].every(elem => elem)) {
+          gamePlaying = false;
+          setup();
+        }
+      });
+    }
+
+    // draw bird logic (Gravity and Vertical Movement)
+    if (gamePlaying) {
+      flight += gravity;
+      flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
+    } else {
+      flyHeight = (canvas.height / 2) - (size[1] / 2);
+    }
+    
+    // --- END OF GAME LOGIC UPDATE ---
+    accumulator -= timeStep;
+  }
+
+  // 3. Drawing/Rendering (runs at max FPS, using positions calculated in the loop)
 
   // background first part
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -((index * (speed / 2)) % canvas.width) + canvas.width, 0, canvas.width, canvas.height);
   // background second part
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height, -(index * (speed / 2)) % canvas.width, 0, canvas.width, canvas.height);
 
-  // pipe display
+  // pipe drawing
   if (gamePlaying) {
     pipes.map(pipe => {
-      pipe[0] -= speed;
-
       // top pipe
       ctx.drawImage(img, 432, 588 - pipe[1], pipeWidth, pipe[1], pipe[0], 0, pipeWidth, pipe[1]);
       // bottom pipe
       ctx.drawImage(img, 432 + pipeWidth, 108, pipeWidth, canvas.height - pipe[1] + pipeGap, pipe[0], pipe[1] + pipeGap, pipeWidth, canvas.height - pipe[1] + pipeGap);
-
-      // give 1 point & create new pipe
-      if (pipe[0] <= -pipeWidth) {
-        currentScore++;
-        bestScore = Math.max(bestScore, currentScore);
-
-        pipes = [...pipes.slice(1), [pipes[pipes.length - 1][0] + pipeGap + pipeWidth, pipeLoc()]];
-      }
-
-      // if hit the pipe, end
-      if ([pipe[0] <= cTenth + size[0], pipe[0] + pipeWidth >= cTenth, pipe[1] > flyHeight || pipe[1] + pipeGap < flyHeight + size[1]].every(elem => elem)) {
-        gamePlaying = false;
-        setup();
-      }
     });
   }
 
   // draw bird
   if (gamePlaying) {
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, cTenth, flyHeight, ...size);
-    flight += gravity;
-    flyHeight = Math.min(flyHeight + flight, canvas.height - size[1]);
   } else {
     ctx.drawImage(img, 432, Math.floor((index % 9) / 3) * size[1], ...size, ((canvas.width / 2) - size[0] / 2), flyHeight, ...size);
-    flyHeight = (canvas.height / 2) - (size[1] / 2);
 
     // text accueil
     ctx.font = "bold 40px 'ZCOOL QingKe HuangYou', courier";
@@ -97,7 +130,12 @@ setup();
 img.onload = render;
 
 // start game
-document.addEventListener('click', () => gamePlaying = true);
+document.addEventListener('click', () => {
+  gamePlaying = true;
+  flight = jump;
+  playJumpSound();
+});
+
 window.onclick = () => flight = jump;
 
 let isJumping = false;
@@ -107,20 +145,27 @@ document.addEventListener('touchstart', () => {
     gamePlaying = true;
     flight = jump;
     isJumping = true;
+    playJumpSound(); // Added sound for touch
   }
 });
 
-// 在小鸟降落后重置 isJumping 变量
+// Since isJumping logic wasn't fully implemented to reset, 
+// I'll rely on the existing click/window.onclick and touchstart to trigger the jump
+// and remove the redundant click listener later in the file.
 
+// Redundant click listener was removed to simplify the logic:
+/*
 document.addEventListener('click', () => {
   gamePlaying = true;
   flight = jump;
   playJumpSound();
 });
+*/
 
-window.onclick = () => flight = jump;
+window.onclick = () => flight = jump; // Keep this for PC/Desktop users
 
 function playJumpSound() {
   const jumpSound = document.getElementById('jump-sound');
+  jumpSound.currentTime = 0; // Reset sound position
   jumpSound.play();
 }
