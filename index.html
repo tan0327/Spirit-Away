@@ -5,7 +5,6 @@
   <title>Spirit Away</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WN7X4G828F"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -15,17 +14,19 @@
   gtag('config', 'G-WN7X4G828F');
 </script>
 <body>
-  <header>
-    <h1>Spirit Away</h1>
-    <div class="score-container">
-      <div id="bestScore"></div>
-      <div id="currentScore"></div>
-    </div>
-  </header>
+  
+  <div id="game-wrapper"> 
+    <header>
+      <h1>Spirit Away</h1>
+      <div class="score-container">
+        <div id="bestScore"></div>
+        <div id="currentScore"></div>
+      </div>
+    </header>
 
-  <canvas id="canvas" width="431" height="768"></canvas>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <canvas id="canvas" width="431" height="768"></canvas>
+  </div>
+  
   <audio id="jump-sound" src="https://github.com/tan0327/Spirit-Away/raw/main/JUMP%20SOUND.mp3"></audio>
   <script src="script.js"></script>
 </body>
